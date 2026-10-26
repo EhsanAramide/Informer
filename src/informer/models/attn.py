@@ -8,7 +8,22 @@ from math import sqrt
 from ..utils.masking import TriangularCausalMask, ProbMask
 
 class FullAttention(nn.Module):
+    """Scaled dot-product attention over every query/key pair.
+
+    Args:
+        mask_flag: Apply a causal mask when true. If ``attn_mask`` is omitted,
+            :class:`~informer.utils.masking.TriangularCausalMask` is created.
+        factor: Accepted for API compatibility; full attention does not use it.
+        scale: Optional score multiplier. The default is ``1 / sqrt(E)``.
+        attention_dropout: Dropout probability applied to attention weights.
+        output_attention: Return attention weights alongside the values.
+
+    Input tensors use ``(B, L, H, E)`` for queries/keys and ``(B, S, H, D)``
+    for values. The result uses ``(B, L, H, D)``. This class performs no head
+    projection; use :class:`AttentionLayer` for ``(B, L, d_model)`` inputs.
+    """
     def __init__(self, mask_flag=True, factor=5, scale=None, attention_dropout=0.1, output_attention=False):
+        """Initialize full attention with the options documented above."""
         super(FullAttention, self).__init__()
         self.scale = scale
         self.mask_flag = mask_flag
@@ -16,6 +31,7 @@ class FullAttention(nn.Module):
         self.dropout = nn.Dropout(attention_dropout)
         
     def forward(self, queries, keys, values, attn_mask):
+        """Compute full attention with an optional mask object."""
         B, L, H, E = queries.shape
         _, S, _, D = values.shape
         scale = self.scale or 1./sqrt(E)
@@ -36,7 +52,23 @@ class FullAttention(nn.Module):
             return (V.contiguous(), None)
 
 class ProbAttention(nn.Module):
+    """Informer ProbSparse attention with sampled query sparsity estimates.
+
+    Args:
+        mask_flag: Use causal initialization and masking when true.
+        factor: Multiplier controlling sampled keys and selected queries.
+        scale: Optional score multiplier. The default is ``1 / sqrt(D)``.
+        attention_dropout: Retained reference argument. The reference update
+            path does not apply the constructed dropout module.
+        output_attention: Return the reconstructed dense attention tensor.
+
+    Sampling uses PyTorch's global RNG in both training and evaluation. Reset
+    that RNG when reproducible replay is required. Length-one inputs are an
+    existing unsupported reference case because the logarithmic sample count
+    becomes zero.
+    """
     def __init__(self, mask_flag=True, factor=5, scale=None, attention_dropout=0.1, output_attention=False):
+        """Initialize ProbSparse attention with the documented sampling policy."""
         super(ProbAttention, self).__init__()
         self.factor = factor
         self.scale = scale
@@ -98,6 +130,7 @@ class ProbAttention(nn.Module):
             return (context_in, None)
 
     def forward(self, queries, keys, values, attn_mask):
+        """Approximate attention for tensors shaped ``(B, L, H, D)``."""
         B, L_Q, H, D = queries.shape
         _, L_K, _, _ = keys.shape
 
@@ -126,8 +159,22 @@ class ProbAttention(nn.Module):
 
 
 class AttentionLayer(nn.Module):
+    """Project model-width sequences into heads around an attention kernel.
+
+    Args:
+        attention: ``FullAttention`` or ``ProbAttention``-compatible module.
+        d_model: Input and output feature width.
+        n_heads: Number of attention heads.
+        d_keys: Per-head query/key width; defaults to ``d_model // n_heads``.
+        d_values: Per-head value width; defaults to ``d_model // n_heads``.
+        mix: Apply the reference decoder head/time transpose before flattening.
+
+    The reference implementation uses floor division and does not require
+    ``d_model`` to be divisible by ``n_heads``.
+    """
     def __init__(self, attention, d_model, n_heads, 
                  d_keys=None, d_values=None, mix=False):
+        """Initialize projections around the supplied attention implementation."""
         super(AttentionLayer, self).__init__()
 
         d_keys = d_keys or (d_model//n_heads)
@@ -142,6 +189,7 @@ class AttentionLayer(nn.Module):
         self.mix = mix
 
     def forward(self, queries, keys, values, attn_mask):
+        """Project, attend, and return ``(output, attention_or_none)``."""
         B, L, _ = queries.shape
         _, S, _ = keys.shape
         H = self.n_heads

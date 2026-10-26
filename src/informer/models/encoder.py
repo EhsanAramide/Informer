@@ -3,7 +3,16 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 class ConvLayer(nn.Module):
+    """Informer encoder distillation block.
+
+    Args:
+        c_in: Input and output channel width.
+
+    The block applies circular Conv1d, BatchNorm1d, ELU, and stride-two max
+    pooling. BatchNorm therefore has different training/evaluation behavior.
+    """
     def __init__(self, c_in):
+        """Initialize the reference distillation sequence."""
         super(ConvLayer, self).__init__()
         padding = 1 if torch.__version__>='1.5.0' else 2
         self.downConv = nn.Conv1d(in_channels=c_in,
@@ -16,6 +25,7 @@ class ConvLayer(nn.Module):
         self.maxPool = nn.MaxPool1d(kernel_size=3, stride=2, padding=1)
 
     def forward(self, x):
+        """Downsample a ``(B, L, c_in)`` sequence along its time dimension."""
         x = self.downConv(x.permute(0, 2, 1))
         x = self.norm(x)
         x = self.activation(x)
@@ -24,7 +34,18 @@ class ConvLayer(nn.Module):
         return x
 
 class EncoderLayer(nn.Module):
+    """Self-attention plus point-wise feed-forward encoder block.
+
+    Args:
+        attention: Projected attention module returning ``(values, weights)``.
+        d_model: Input/output feature width.
+        d_ff: Hidden feed-forward width; defaults to ``4 * d_model``.
+        dropout: Residual and feed-forward dropout probability.
+        activation: ``"relu"`` selects ReLU; every other value selects GELU,
+            preserving the reference selector behavior.
+    """
     def __init__(self, attention, d_model, d_ff=None, dropout=0.1, activation="relu"):
+        """Initialize attention, residual normalization, and feed-forward layers."""
         super(EncoderLayer, self).__init__()
         d_ff = d_ff or 4*d_model
         self.attention = attention
@@ -36,6 +57,7 @@ class EncoderLayer(nn.Module):
         self.activation = F.relu if activation == "relu" else F.gelu
 
     def forward(self, x, attn_mask=None):
+        """Encode ``x`` and return ``(states, attention_or_none)``."""
         # x [B, L, D]
         # x = x + self.dropout(self.attention(
         #     x, x, x,
@@ -54,13 +76,23 @@ class EncoderLayer(nn.Module):
         return self.norm2(x+y), attn
 
 class Encoder(nn.Module):
+    """Sequence of encoder blocks with optional inter-block distillation.
+
+    Args:
+        attn_layers: Ordered encoder layers.
+        conv_layers: Optional distillation layers. The intended reference count
+            is one fewer than the attention-layer count.
+        norm_layer: Optional final normalization module.
+    """
     def __init__(self, attn_layers, conv_layers=None, norm_layer=None):
+        """Store encoder and optional distillation layers in execution order."""
         super(Encoder, self).__init__()
         self.attn_layers = nn.ModuleList(attn_layers)
         self.conv_layers = nn.ModuleList(conv_layers) if conv_layers is not None else None
         self.norm = norm_layer
 
     def forward(self, x, attn_mask=None):
+        """Return encoded states and one diagnostic per attention layer."""
         # x [B, L, D]
         attns = []
         if self.conv_layers is not None:
@@ -81,12 +113,24 @@ class Encoder(nn.Module):
         return x, attns
 
 class EncoderStack(nn.Module):
+    """Run encoders on progressively shorter suffixes and concatenate outputs.
+
+    Args:
+        encoders: Independent encoder modules.
+        inp_lens: Integer exponents; encoder ``i`` receives the last
+            ``L // (2 ** inp_lens[i])`` positions.
+
+    The reference forward method accepts ``attn_mask`` but does not pass it to
+    the contained encoders; this behavior is intentionally preserved.
+    """
     def __init__(self, encoders, inp_lens):
+        """Store independent suffix encoders and their length exponents."""
         super(EncoderStack, self).__init__()
         self.encoders = nn.ModuleList(encoders)
         self.inp_lens = inp_lens
 
     def forward(self, x, attn_mask=None):
+        """Return concatenated suffix encodings and nested diagnostics."""
         # x [B, L, D]
         x_stack = []; attns = []
         for i_len, encoder in zip(self.inp_lens, self.encoders):
