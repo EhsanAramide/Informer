@@ -68,3 +68,21 @@ def test_reference_parity(
         cwd=tmp_path, text=True, capture_output=True, timeout=90, check=False,
     )
     assert completed.returncode == 0, completed.stdout + completed.stderr
+
+
+@pytest.mark.parametrize("model", ["Informer", "InformerStack"])
+@pytest.mark.parametrize(
+    ("attention", "scenario"),
+    [("full", "fixed_no_distil"), ("prob", "learned_distil"),
+     ("full", "timef_no_distil")],
+)
+def test_reference_parity_customizations(
+    tmp_path: Path, model: str, attention: str, scenario: str
+) -> None:
+    """Match reference embedding and distillation customization behavior."""
+    completed = subprocess.run(
+        [sys.executable, "-I", "-B", str(ROOT / "tests/package_worker.py"),
+         str(ROOT), model, "float32", attention, scenario],
+        cwd=tmp_path, text=True, capture_output=True, timeout=90, check=False,
+    )
+    assert completed.returncode == 0, completed.stdout + completed.stderr
