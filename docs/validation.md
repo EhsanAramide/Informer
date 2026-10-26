@@ -88,3 +88,35 @@ The maintained source differs from the frozen model/utilities only where needed
 for relative imports, package initializers, and actionable optional-pandas import
 handling. Algorithms, constructor signatures, defaults, parameter names, state
 keys, and numerical operations were not changed.
+
+## Chunk 3 — model customization and compatibility (2026-10-26)
+
+Status: implemented, pending owner review. Result: **39 passed, 2 skipped in
+98.68 seconds** for the complete standalone test suite. Both skipped cases are
+conditional CUDA float32/float64 smoke tests; CUDA is unavailable on this host.
+
+New verification covers:
+
+- Complete class, constructor, and forward docstrings for all public model,
+  attention, embedding, encoder, and decoder components.
+- Fixed categorical, learned categorical, and continuous timestamp embeddings.
+- Distillation enabled and disabled for Informer and InformerStack.
+- Causal full-attention masks, normalized attention rows, controlled ProbSparse
+  RNG replay, custom attention projection widths, and attention gradients.
+- Dropout train/evaluation behavior, strict state restoration, distinct
+  encoder/decoder/output widths, and CPU float32/float64 behavior.
+- Six additional exact package/reference comparisons spanning the three timestamp
+  embedding modes and both distillation settings. Together with Chunk 2 cases,
+  exact comparisons cover both model classes and both attention families.
+
+Exact parity includes predictions, returned attention tensors, input gradients,
+parameter gradients, state-dictionary names, and loaded parameter values. Tests
+use matching modes, inputs, weights, and reset RNG states. They do not claim that
+training-mode batches are independent: distillation deliberately retains the
+reference BatchNorm behavior. They also do not make ProbSparse deterministic
+without RNG control.
+
+No model algorithm, operation, signature, default, initialization, mask rule,
+sampling rule, or state key changed in this chunk. Source changes are docstrings;
+the expanded behavior is established through tests and documentation. Passing
+compatibility checks demonstrates preservation, not forecasting accuracy.

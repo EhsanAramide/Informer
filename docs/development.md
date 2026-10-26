@@ -2,8 +2,8 @@
 
 ## Status and workflow
 
-Chunks 1–2 are implemented; Chunk 2 awaits owner review. The namespaced package
-is now independently buildable, while the root implementation remains frozen.
+Chunks 1–3 are implemented; Chunk 3 awaits owner review. The namespaced package
+is independently buildable, while the root implementation remains frozen.
 The owner approved this five-chunk, documentation-first and test-driven plan.
 Each chunk stops for review; the next requires explicit confirmation.
 
@@ -16,17 +16,17 @@ Git at test runtime. Never silently refresh this baseline to accommodate a fix.
 | Chunk | Deliverables | Review status |
 |---|---|---|
 | 1 | Scientific/package contract; isolated reference forward/backward, sampling, checkpoint and limitation tests | Reviewed and approved |
-| 2 | Namespaced source extraction, build metadata, optional imports, wheel/source-distribution installation and reference parity | Implemented; pending review |
-| 3 | Public component documentation and expanded model/customization compatibility matrix | Not started |
+| 2 | Namespaced source extraction, build metadata, optional imports, wheel/source-distribution installation and reference parity | Reviewed and approved |
+| 3 | Public component documentation and expanded model/customization compatibility matrix | Implemented; pending review |
 | 4 | Utility compatibility, time/metric/scaler behavior, temporary checkpoint tests, equivalent modern API replacements | Not started |
 | 5 | Synthetic examples, API guide, isolated installation, tested versions, limitations and final documentation closure | Not started |
 
 ## Package contract
 
 See [validation.md](validation.md) for the tested environment, baseline results,
-and explicit exclusions. Review approval is required before Chunk 2 begins.
+and explicit exclusions. Review approval is required before Chunk 4 begins.
 
-Future distribution/import name: `informer`, version `0.0.0`, using setuptools
+Distribution/import name: `informer`, version `0.0.0`, using setuptools
 and `src/informer`. Export `Informer` and `InformerStack` at package root and
 expose all current modules beneath `informer.models` and `informer.utils`.
 Keep model constructor/forward arguments, defaults, return structures, parameter
@@ -40,7 +40,7 @@ All current utility modules remain accessible, including existing training helpe
 without adding a new training framework. Optional imports must fail with useful
 installation guidance. Legacy dependency pins remain historical evidence only.
 
-Future layout:
+Current maintained layout:
 
 ```text
 src/informer/
@@ -60,13 +60,13 @@ sampling, normalization, scaling conventions, or metric formulas must be
 explained and approved before adoption. Known reference limitations are evidence,
 not behaviors to silently repair or newly impose on unrelated inputs.
 
-Compare reference and packaged implementations in separate processes using the
+Compare reference and packaged implementations in isolated processes using the
 same weights, tensors, modes, and random-number state. Test both models, supported
 attention/embedding/distillation choices, CPU float32/64, conditional CUDA,
-gradients, attention returns, and checkpoint restoration. Build and install both
-wheel and source distribution outside the checkout in later chunks; source-tree
-imports alone do not demonstrate installability. Test core imports without the
-optional time dependency and calendar utilities with it.
+gradients, attention returns, and checkpoint restoration. Wheel and source
+distribution installation is verified outside the checkout; source-tree imports
+alone do not demonstrate installability. Test core imports without the optional
+time dependency and calendar utilities with it.
 
 Complete public documentation and runnable examples must accompany final review.
 Reference runners remain historical; their modernization, benchmark reproduction,

@@ -1,4 +1,4 @@
-# Planned standalone API and reference tensor contract
+# Standalone API and reference tensor contract
 
 The package is available from this repository using its standard build metadata.
 Chunk 2 establishes imports and reference parity; comprehensive component
@@ -19,6 +19,8 @@ Also expose existing definitions through `informer.utils.timefeatures`,
 Expose the existing embedding classes through `informer.models.embed`.
 Module paths are supported customization points; underscore-prefixed helpers
 remain implementation details. No convenience API may change reference behavior.
+Component-level construction and reproducibility examples are available in
+[models.md](models.md).
 
 ## Forward contract
 
