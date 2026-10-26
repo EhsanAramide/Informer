@@ -1,7 +1,8 @@
 # Planned standalone API and reference tensor contract
 
-**Chunk 1:** these are package contracts; `informer` is not yet installable.
-Package extraction and import tests belong to Chunk 2.
+The package is available from this repository using its standard build metadata.
+Chunk 2 establishes imports and reference parity; comprehensive component
+docstrings and customization coverage remain Chunk 3 work.
 
 ```python
 from informer import Informer, InformerStack
@@ -54,3 +55,12 @@ Masks, RNG behavior, ignored constructor arguments, and known shape limitations
 are documented in [architecture.md](architecture.md). Timestamp conversion is
 optional and pandas-dependent; core model imports must remain independent of it.
 Modern installed-package behavior and full usage examples are later chunks.
+
+## Installation boundary
+
+Build and install the project itself for the core models, or install its `time`
+extra when timestamp utilities are needed. Importing `informer`, model modules,
+masks, metrics, or general tools does not import pandas. Importing
+`informer.utils.timefeatures` without pandas raises a message directing the user
+to install `informer[time]`. Historical root-level `models` and `utils` are not
+installed and are not compatibility aliases.

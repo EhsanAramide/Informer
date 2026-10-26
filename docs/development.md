@@ -2,7 +2,8 @@
 
 ## Status and workflow
 
-Chunk 1 is implemented and awaiting owner review. No installable package has been extracted yet.
+Chunks 1–2 are implemented; Chunk 2 awaits owner review. The namespaced package
+is now independently buildable, while the root implementation remains frozen.
 The owner approved this five-chunk, documentation-first and test-driven plan.
 Each chunk stops for review; the next requires explicit confirmation.
 
@@ -14,8 +15,8 @@ Git at test runtime. Never silently refresh this baseline to accommodate a fix.
 
 | Chunk | Deliverables | Review status |
 |---|---|---|
-| 1 | Scientific/package contract; isolated reference forward/backward, sampling, checkpoint and limitation tests | Implemented; pending review |
-| 2 | Namespaced source extraction, build metadata, optional imports, wheel/source-distribution installation and reference parity | Not started |
+| 1 | Scientific/package contract; isolated reference forward/backward, sampling, checkpoint and limitation tests | Reviewed and approved |
+| 2 | Namespaced source extraction, build metadata, optional imports, wheel/source-distribution installation and reference parity | Implemented; pending review |
 | 3 | Public component documentation and expanded model/customization compatibility matrix | Not started |
 | 4 | Utility compatibility, time/metric/scaler behavior, temporary checkpoint tests, equivalent modern API replacements | Not started |
 | 5 | Synthetic examples, API guide, isolated installation, tested versions, limitations and final documentation closure | Not started |

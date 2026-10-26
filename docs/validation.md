@@ -60,3 +60,31 @@ not claims of successful utility execution on modern dependencies.
 The future extracted package must be compared against this reference using
 identical weights, inputs, modes, and reset random states. Neither passing this
 baseline nor later parity tests establishes forecasting performance.
+
+## Chunk 2 — package extraction and installation (2026-10-26)
+
+Status: implemented, pending owner review. Result: **22 passed in 94.44 seconds**
+for `python -m pytest -q externals/Informer/tests` from the parent checkout.
+
+The result includes the ten Chunk 1 baseline tests plus:
+
+- Public root and component imports with version `0.0.0`.
+- A blocked-pandas process proving that core imports remain available and the
+  explicit timestamp module reports the `informer[time]` remedy.
+- Eight exact reference/package cases: both models × full/ProbSparse attention ×
+  CPU float32/float64. Identical state dictionaries and reset RNG states produce
+  identical predictions, attention tensors, input gradients, and parameter
+  gradients.
+- Wheel and source-distribution builds followed by separate temporary-environment
+  installations and imports from outside the checkout. Neither historical
+  top-level namespace is loaded by installed-package use.
+
+Build tests use the locally installed build backend (`--no-isolation`) and install
+artifacts with `--no-deps`; this avoids network access and makes dependency
+availability an explicit test-environment precondition. It does not replace a
+future clean dependency-resolution matrix. CUDA remains unavailable and untested.
+
+The maintained source differs from the frozen model/utilities only where needed
+for relative imports, package initializers, and actionable optional-pandas import
+handling. Algorithms, constructor signatures, defaults, parameter names, state
+keys, and numerical operations were not changed.
