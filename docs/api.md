@@ -1,8 +1,9 @@
 # Standalone API and reference tensor contract
 
 The package is available from this repository using its standard build metadata.
-Chunk 2 establishes imports and reference parity; comprehensive component
-docstrings and customization coverage remain Chunk 3 work.
+Imports, component documentation, customization coverage, and utility contracts
+are implemented. All five chunks, including examples and installation validation,
+are reviewed and approved; the standalone packaging journey is closed.
 
 ```python
 from informer import Informer, InformerStack
@@ -58,7 +59,9 @@ acceptance promise across the namespace move.
 Masks, RNG behavior, ignored constructor arguments, and known shape limitations
 are documented in [architecture.md](architecture.md). Timestamp conversion is
 optional and pandas-dependent; core model imports must remain independent of it.
-Modern installed-package behavior and full usage examples are later chunks.
+Runnable examples are in `examples/forecast.py` (both model classes) and
+`examples/components.py` (optional `--time` requires pandas). See the README for
+installation and invocation from any working directory.
 
 ## Installation boundary
 

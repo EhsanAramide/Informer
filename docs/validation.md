@@ -1,5 +1,10 @@
 # Validation record
 
+Final owner review approved all five chunks and closed this journey. The dated
+entries below retain the results and review status recorded at each handoff.
+Closure is documentation-only; the last verified suite remains 66 passed and
+2 CUDA skips. IonMPX temporal integration is a separate development journey.
+
 ## Chunk 1 — reference characterization (2026-10-25)
 
 Status: implemented, pending owner review. No packaged implementation exists yet;
@@ -153,3 +158,37 @@ process, so importing pandas for calendar tests during collection cannot affect
 that assertion. Original root sources still pass their frozen hash checks.
 Utility input limits and formulas are recorded in [utilities.md](utilities.md).
 Chunk 5 remains unstarted.
+
+## Chunk 5 — examples and installation closure (2026-10-27)
+
+Status: implementation complete, pending final owner review. Full standalone
+suite: **66 passed, 2 skipped in 122.07 seconds**. Both skips require CUDA, which
+is unavailable. The test count is unchanged because installation tests now also
+exercise the four example invocations against each of the two artifacts.
+
+Verified wheel and source-distribution installation from temporary working
+directories, using isolated Python (`-I`), no PYTHONPATH, and confirmation that
+the imported package resides inside the temporary environment. Both installations
+run standard Informer, InformerStack, custom attention components, and components
+with pandas calendar features. All examples verify shapes and gradients. Wheel
+contents exclude generic model/utility namespaces; the source distribution
+includes docs, examples, attribution, and frozen reference sources/tests.
+
+Core imports and missing-extra guidance are checked with an import blocker that
+makes pandas unavailable to the installed package. A separate normal process
+exercises the calendar example with pandas present. This simulates absence;
+it does not claim a physically pandas-free dependency environment. Temporary
+environments reuse system dependencies and install artifacts with --no-deps and
+--no-build-isolation. No clean network dependency-resolution matrix was run.
+
+Tested environment remains Python 3.14.7, PyTorch 2.14.0, NumPy 2.5.3, pandas
+2.3.3, and pytest 9.1.1. Packaging uses setuptools 82.0.1, build 1.6.0, and wheel
+0.48.0. Other declared dependency combinations and CUDA behavior remain unverified.
+The original license-file/README-badge discrepancy remains recorded in attribution.
+
+The package README now documents installation, inputs, examples, reproducibility,
+checkpoint compatibility, historical benchmark status, and limitations. Original
+README content is retained in README.upstream.md. IonMPX overview links identify
+the standalone dependency and future shared node-wise temporal integration.
+Canonical context was not edited. No publication, benchmark reproduction,
+forecasting comparison, or IonMPX temporal implementation occurred in this journey.

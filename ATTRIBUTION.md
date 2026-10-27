@@ -13,11 +13,11 @@ implementation. Preserve the original acknowledgments and citation.
 - Reference revision: `29f2a739226a509202a092b464163da81fa74960`.
 
 The root `LICENSE` contains Apache License 2.0 text, while the retained upstream
-README carries a CC BY-NC-SA badge. This discrepancy is recorded, not resolved
+README (now `README.upstream.md`) carries a CC BY-NC-SA badge. This discrepancy is recorded, not resolved
 by this packaging work. The original license and README are preserved; no new
 licensing terms or publication authorization are inferred. Publication is outside
 this journey and should not rely on treating the discrepancy as resolved.
 
-Chunk 1 adds documentation and isolated characterization tests only. The original
-model and utility files are unchanged. Later packaged copies must retain
-attribution and record compatibility changes in the development/validation docs.
+The original model and utility files remain unchanged. Maintained copies under
+`src/informer` use namespaced imports, API documentation, and the utility
+compatibility replacements recorded in the development/validation documents.

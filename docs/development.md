@@ -2,7 +2,8 @@
 
 ## Status and workflow
 
-Chunks 1–4 are implemented; Chunk 4 awaits owner review. The namespaced package
+All five chunks are reviewed and approved; the standalone journey is closed.
+The namespaced package
 is independently buildable, while the root implementation remains frozen.
 The owner approved this five-chunk, documentation-first and test-driven plan.
 Each chunk stops for review; the next requires explicit confirmation.
@@ -18,13 +19,18 @@ Git at test runtime. Never silently refresh this baseline to accommodate a fix.
 | 1 | Scientific/package contract; isolated reference forward/backward, sampling, checkpoint and limitation tests | Reviewed and approved |
 | 2 | Namespaced source extraction, build metadata, optional imports, wheel/source-distribution installation and reference parity | Reviewed and approved |
 | 3 | Public component documentation and expanded model/customization compatibility matrix | Reviewed and approved |
-| 4 | Utility compatibility, time/metric/scaler behavior, temporary checkpoint tests, equivalent modern API replacements | Implemented; pending review |
-| 5 | Synthetic examples, API guide, isolated installation, tested versions, limitations and final documentation closure | Not started |
+| 4 | Utility compatibility, time/metric/scaler behavior, temporary checkpoint tests, equivalent modern API replacements | Reviewed and approved |
+| 5 | Synthetic examples, API guide, isolated installation, tested versions, limitations and final documentation closure | Reviewed and approved; journey closed |
 
 ## Package contract
 
 See [validation.md](validation.md) for the tested environment, baseline results,
-and explicit exclusions. Review approval is required before Chunk 5 begins.
+and explicit exclusions. Final owner review has closed this standalone journey.
+
+Runnable examples cover both model classes and component/calendar customization.
+`README.upstream.md` preserves the original README; the current README describes
+the maintained package. Source distributions include examples, docs, and frozen
+reference tests; wheels install only the namespaced library and metadata.
 
 Distribution/import name: `informer`, version `0.0.0`, using setuptools
 and `src/informer`. Export `Informer` and `InformerStack` at package root and
