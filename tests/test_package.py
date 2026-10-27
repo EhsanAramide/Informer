@@ -27,7 +27,6 @@ def test_public_imports_and_version() -> None:
         importlib.import_module(f"informer.models.{module}")
     for module in ("masking", "metrics", "tools"):
         importlib.import_module(f"informer.utils.{module}")
-    assert "pandas" not in sys.modules
 
 
 def test_time_module_has_actionable_missing_dependency_message(tmp_path: Path) -> None:
@@ -40,6 +39,11 @@ class BlockPandas(importlib.abc.MetaPathFinder):
         if fullname == 'pandas' or fullname.startswith('pandas.'):
             raise ModuleNotFoundError("blocked", name='pandas')
 sys.meta_path.insert(0, BlockPandas())
+import informer
+import informer.utils.masking
+import informer.utils.metrics
+import informer.utils.tools
+assert 'pandas' not in sys.modules
 try:
     import informer.utils.timefeatures
 except ModuleNotFoundError as error:
