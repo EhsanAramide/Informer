@@ -13,54 +13,66 @@ except ModuleNotFoundError as error:
     raise
 
 class TimeFeature:
+    """Reference stateless calendar-feature interface (not an abstract class)."""
     def __init__(self):
+        """Initialize a stateless feature."""
         pass
 
     def __call__(self, index: pd.DatetimeIndex) -> np.ndarray:
+        """Base placeholder returning None; subclasses encode DatetimeIndex values."""
         pass
 
     def __repr__(self):
+        """Return the feature class name followed by parentheses."""
         return self.__class__.__name__ + "()"
 
 class SecondOfMinute(TimeFeature):
-    """Minute of hour encoded as value between [-0.5, 0.5]"""
+    """Second of minute encoded as value between [-0.5, 0.5]."""
     def __call__(self, index: pd.DatetimeIndex) -> np.ndarray:
+        """Encode valid seconds from index, dividing by 59 and centering."""
         return index.second / 59.0 - 0.5
 
 class MinuteOfHour(TimeFeature):
     """Minute of hour encoded as value between [-0.5, 0.5]"""
     def __call__(self, index: pd.DatetimeIndex) -> np.ndarray:
+        """Encode valid minutes from index, dividing by 59 and centering."""
         return index.minute / 59.0 - 0.5
 
 class HourOfDay(TimeFeature):
-    """Hour of day encoded as value between [-0.5, 0.5]"""
+    """Hour of day encoded as value between [-0.5, 0.5]."""
     def __call__(self, index: pd.DatetimeIndex) -> np.ndarray:
+        """Encode valid hours from index, dividing by 23 and centering."""
         return index.hour / 23.0 - 0.5
 
 class DayOfWeek(TimeFeature):
-    """Hour of day encoded as value between [-0.5, 0.5]"""
+    """Weekday (Monday zero) encoded between [-0.5, 0.5]."""
     def __call__(self, index: pd.DatetimeIndex) -> np.ndarray:
+        """Encode Monday-zero weekdays, dividing by six and centering."""
         return index.dayofweek / 6.0 - 0.5
 
 class DayOfMonth(TimeFeature):
     """Day of month encoded as value between [-0.5, 0.5]"""
     def __call__(self, index: pd.DatetimeIndex) -> np.ndarray:
+        """Encode one-based month days with a fixed denominator of 30."""
         return (index.day - 1) / 30.0 - 0.5
 
 class DayOfYear(TimeFeature):
     """Day of year encoded as value between [-0.5, 0.5]"""
     def __call__(self, index: pd.DatetimeIndex) -> np.ndarray:
+        """Encode one-based year days with a fixed denominator of 365."""
         return (index.dayofyear - 1) / 365.0 - 0.5
 
 class MonthOfYear(TimeFeature):
     """Month of year encoded as value between [-0.5, 0.5]"""
     def __call__(self, index: pd.DatetimeIndex) -> np.ndarray:
+        """Encode one-based months with a fixed denominator of 11."""
         return (index.month - 1) / 11.0 - 0.5
 
 class WeekOfYear(TimeFeature):
     """Week of year encoded as value between [-0.5, 0.5]"""
     def __call__(self, index: pd.DatetimeIndex) -> np.ndarray:
-        return (index.week - 1) / 52.0 - 0.5
+        """Encode ISO weeks 1–53 with a fixed denominator of 52."""
+        return (index.isocalendar().week.to_numpy(dtype=np.int64) - 1) / 52.0 - 0.5
 
 def time_features_from_frequency_str(freq_str: str) -> List[TimeFeature]:
     """
@@ -68,7 +80,13 @@ def time_features_from_frequency_str(freq_str: str) -> List[TimeFeature]:
     Parameters
     ----------
     freq_str
-        Frequency string of the form [multiple][granularity] such as "12H", "5min", "1D" etc.
+        pandas offset string such as "12h", "5min", "1D", "ME", or "YE".
+
+    Returns
+    -------
+    list[TimeFeature]
+        Ordered feature instances; annual offsets return an empty list.
+        Invalid strings raise pandas errors; unsupported offsets raise RuntimeError.
     """
 
     features_by_offsets = {
@@ -120,7 +138,18 @@ def time_features_from_frequency_str(freq_str: str) -> List[TimeFeature]:
 
 def time_features(dates, timeenc=1, freq='h'):
     """
-    > `time_features` takes in a `dates` dataframe with a 'dates' column and extracts the date down to `freq` where freq can be any of the following if `timeenc` is 0: 
+    Extract calendar columns from a DataFrame with a datetime-valued ``date`` column.
+
+    Args:
+        dates: DataFrame; categorical mode writes/overwrites calendar columns.
+        timeenc: Zero for categories, one for continuous features; others return None.
+        freq: Categorical key or pandas offset string, depending on timeenc.
+
+    Returns:
+        NumPy array (timestamps, features). Continuous mode does not mutate dates.
+        Annual continuous selection raises because its feature list is empty.
+
+    Categorical frequency keys (timeenc=0):
     > * m - [month]
     > * w - [month]
     > * d - [month, day, weekday]
@@ -129,23 +158,25 @@ def time_features(dates, timeenc=1, freq='h'):
     > * t - [month, day, weekday, hour, *minute]
     > 
     > If `timeenc` is 1, a similar, but different list of `freq` values are supported (all encoded between [-0.5 and 0.5]): 
-    > * Q - [month]
-    > * M - [month]
+    > * QE - [month]
+    > * ME - [month]
     > * W - [Day of month, week of year]
     > * D - [Day of week, day of month, day of year]
     > * B - [Day of week, day of month, day of year]
-    > * H - [Hour of day, day of week, day of month, day of year]
-    > * T - [Minute of hour*, hour of day, day of week, day of month, day of year]
-    > * S - [Second of minute, minute of hour, hour of day, day of week, day of month, day of year]
+    > * h - [Hour of day, day of week, day of month, day of year]
+    > * min - [Minute of hour, hour of day, day of week, day of month, day of year]
+    > * s - [Second of minute, minute of hour, hour of day, day of week, day of month, day of year]
 
-    *minute returns a number from 0-3 corresponding to the 15 minute period it falls into.
+    Categorical minute returns 0-3 for its 15 minute period; continuous minute
+    uses raw minutes divided by 59, minus 0.5. Continuous keys follow pandas
+    offsets, which differ from model embedding frequency keys.
     """
     if timeenc==0:
-        dates['month'] = dates.date.apply(lambda row:row.month,1)
-        dates['day'] = dates.date.apply(lambda row:row.day,1)
-        dates['weekday'] = dates.date.apply(lambda row:row.weekday(),1)
-        dates['hour'] = dates.date.apply(lambda row:row.hour,1)
-        dates['minute'] = dates.date.apply(lambda row:row.minute,1)
+        dates['month'] = dates.date.apply(lambda row:row.month)
+        dates['day'] = dates.date.apply(lambda row:row.day)
+        dates['weekday'] = dates.date.apply(lambda row:row.weekday())
+        dates['hour'] = dates.date.apply(lambda row:row.hour)
+        dates['minute'] = dates.date.apply(lambda row:row.minute)
         dates['minute'] = dates.minute.map(lambda x:x//15)
         freq_map = {
             'y':[],'m':['month'],'w':['month'],'d':['month','day','weekday'],
