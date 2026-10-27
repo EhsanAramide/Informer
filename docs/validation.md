@@ -120,3 +120,36 @@ No model algorithm, operation, signature, default, initialization, mask rule,
 sampling rule, or state key changed in this chunk. Source changes are docstrings;
 the expanded behavior is established through tests and documentation. Passing
 compatibility checks demonstrates preservation, not forecasting accuracy.
+
+## Chunk 4 — utility compatibility (2026-10-27)
+
+Status: implemented, pending owner review. Full standalone suite: **66 passed,
+2 skipped in 103.93 seconds**. CUDA remains unavailable; both skips are the
+existing CUDA model checks. The 27 new utility tests first produced 25 passes
+and two failures demonstrating removed NumPy/pandas APIs. Following compatibility
+changes, the targeted suite passed all 27 tests with no warning summary.
+
+Environment: Python 3.14.7, NumPy 2.5.3, pandas 2.3.3, PyTorch 2.14.0, pytest
+9.1.1. pandas 3.x is declared in the supported range but was not tested here.
+
+Verified numerical fixtures cover global metrics and the reference CORR formula,
+population scaling, inverse last-feature broadcasting, tensor gradients, ISO
+week 53 across year boundaries, leap-year endpoints, continuous channel order,
+categorical minute bins, and input mutation. Temporary directories contain all
+early-stopping checkpoints. Tests also cover patience/delta/ties, both learning
+rate schedules, dotdict, and Boolean causal/selected-query masks. Expected
+division warnings are asserted locally rather than suppressed globally.
+
+Compatibility changes are limited to:
+
+1. `np.Inf` → `np.inf`, preserving positive infinity initialization.
+2. `DatetimeIndex.week` → ISO week extraction converted to a NumPy integer array,
+   preserving calendar-week values and the original scaling formula.
+3. Removing positional `convert_dtype=True` from categorical Series.apply calls;
+   fixed fixtures verify the same values, column order, and DataFrame mutation.
+
+The missing-pandas test now asserts core-import isolation in its dedicated child
+process, so importing pandas for calendar tests during collection cannot affect
+that assertion. Original root sources still pass their frozen hash checks.
+Utility input limits and formulas are recorded in [utilities.md](utilities.md).
+Chunk 5 remains unstarted.

@@ -57,6 +57,8 @@ categorical path mutates it. No cadence inference or resampling is provided.
 
 Original utilities include ratios undefined for zero denominators and a scaler
 without a constant-feature safeguard. `EarlyStopping` uses `np.Inf`, removed in
-NumPy 2; `WeekOfYear` uses the legacy pandas `.week` accessor. These are identified
-compatibility candidates for Chunk 4, not fixes made in this baseline. Reference
-behavior and limitations must remain distinct from later supported package cases.
+NumPy 2; `WeekOfYear` uses the legacy pandas `.week` accessor. Chunk 4 replaces
+these in the maintained package with `np.inf` and ISO-calendar week extraction,
+and removes deprecated categorical apply arguments. Frozen reference files retain
+the original calls. See [utilities.md](utilities.md) for preserved formulas,
+supported inputs, mutation, and remaining limitations.

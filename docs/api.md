@@ -21,6 +21,8 @@ Module paths are supported customization points; underscore-prefixed helpers
 remain implementation details. No convenience API may change reference behavior.
 Component-level construction and reproducibility examples are available in
 [models.md](models.md).
+Utility input contracts, calendar feature order, scaling, metric formulas, masks,
+and compatibility changes are documented in [utilities.md](utilities.md).
 
 ## Forward contract
 
